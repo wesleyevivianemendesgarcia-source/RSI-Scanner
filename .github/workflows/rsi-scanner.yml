@@ -1,13 +1,13 @@
-name: Scanner RSI Binance e OKX
+name: Scanner RSI OKX 1H
 
 on:
   schedule:
-    - cron: '5 0,4,8,12,16,20 * * *'
+    - cron: '5 1,3,5,7,9,11,13,15,17,19,21,23 * * *'
   workflow_dispatch:
 
 jobs:
   scanner:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Baixar arquivos do repositorio
