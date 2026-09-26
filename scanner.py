@@ -4,6 +4,8 @@ import requests
 
 RSI_PERIOD = 14
 RSI_LIMIT = 25.0
+TIMEFRAME = os.environ.get("SCAN_TIMEFRAME", "1H")
+RSI_LIMIT = float(os.environ.get("RSI_LIMIT", "25"))
 TIMEOUT = 20
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -150,14 +152,14 @@ def get_okx_symbols():
     return symbols
 
 
-def get_okx_closes(symbol):
+def get_okx_closes(symbol, timeframe):
     url = "https://www.okx.com/api/v5/market/history-candles"
 
     data = get_json(
         url,
         params={
             "instId": symbol,
-            "bar": "1H",
+            "bar": timeframe,
             "limit": 200
         }
     )
@@ -189,7 +191,7 @@ def get_okx_closes(symbol):
     return closes
 
 
-def scan_okx():
+def scan_okx(timeframe, rsi_limit):
     print("Iniciando OKX USDT-M Perpetual...")
 
     results = []
@@ -203,14 +205,14 @@ def scan_okx():
 
     for number, symbol in enumerate(symbols, start=1):
 
-        closes = get_okx_closes(symbol)
+        closes = get_okx_closes(symbol, timeframe)
 
         rsi = calculate_rsi_wilder(
             closes,
             RSI_PERIOD
         )
 
-        if rsi is not None and rsi <= RSI_LIMIT:
+        if rsi is not None and rsi <= rsi_limit:
             results.append(
                 (symbol, rsi)
             )
@@ -226,13 +228,13 @@ def scan_okx():
     return results
 
 
-def format_results(exchange, results):
+def format_results(exchange, results, timeframe, rsi_limit):
     results.sort(
         key=lambda item: item[1]
     )
 
     lines = [
-        f"{exchange} - RSI 1H <= {RSI_LIMIT:.0f}"
+        f"{exchange} - RSI {timeframe} <= {rsi_limit:.0f}"
     ]
 
     for symbol, rsi in results:
@@ -244,26 +246,32 @@ def format_results(exchange, results):
 
 
 def main():
+    timeframe = TIMEFRAME
+    rsi_limit = RSI_LIMIT
+
     print("======================================")
     print("Scanner RSI OKX iniciado.")
-    print("Timeframe: 1H")
+    print(f"Timeframe: {timeframe}")
     print("RSI: Wilder 14")
-    print("Limite: RSI <= 25")
+    print(f"Limite: RSI <= {rsi_limit:.0f}")
     print("Somente candles fechados.")
     print("======================================")
 
-    okx_results = scan_okx()
+    okx_results = scan_okx(timeframe, rsi_limit)
 
     if okx_results:
         message = (
-            "ALERTA RSI 1H - OKX\n\n"
-            + format_results("OKX PERPETUAL", okx_results)
+            f"ALERTA RSI {timeframe} - OKX\n\n"
+            + format_results("OKX PERPETUAL", okx_results, timeframe, rsi_limit)
             + "\n\nRSI 14 (Wilder/RMA)"
-            + "\nCandle 1H fechado"
+            + f"\nCandle {timeframe} fechado"
         )
         send_telegram(message)
     else:
-        print("Nenhum contrato OKX com RSI <= 25 nesta execucao.")
+        print(
+            f"Nenhum contrato OKX com RSI <= {rsi_limit:.0f} "
+            f"no timeframe {timeframe} nesta execucao."
+        )
 
     print("Scanner finalizado.")
 
