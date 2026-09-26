@@ -111,99 +111,6 @@ def send_telegram(message):
 
 
 # ==========================================================
-# BINANCE FUTURES USD-M
-# ==========================================================
-
-def get_binance_symbols():
-    url = "https://fapi.binance.com/fapi/v1/exchangeInfo"
-
-    data = get_json(url)
-
-    if not data:
-        return []
-
-    symbols = []
-
-    for item in data.get("symbols", []):
-        if (
-            item.get("quoteAsset") == "USDT"
-            and item.get("contractType") == "PERPETUAL"
-            and item.get("status") == "TRADING"
-        ):
-            symbols.append(item["symbol"])
-
-    return symbols
-
-
-def get_binance_closes(symbol):
-    url = "https://fapi.binance.com/fapi/v1/klines"
-
-    data = get_json(
-        url,
-        params={
-            "symbol": symbol,
-            "interval": "4h",
-            "limit": 200
-        }
-    )
-
-    if not data:
-        return []
-
-    now_ms = int(time.time() * 1000)
-
-    closed_candles = [
-        candle
-        for candle in data
-        if int(candle[6]) < now_ms
-    ]
-
-    closes = [
-        float(candle[4])
-        for candle in closed_candles
-    ]
-
-    return closes
-
-
-def scan_binance():
-    print("Iniciando Binance Futures USD-M...")
-
-    results = []
-
-    symbols = get_binance_symbols()
-
-    print(
-        f"Binance: {len(symbols)} contratos "
-        f"perpetuos USDT encontrados."
-    )
-
-    for number, symbol in enumerate(symbols, start=1):
-
-        closes = get_binance_closes(symbol)
-
-        rsi = calculate_rsi_wilder(
-            closes,
-            RSI_PERIOD
-        )
-
-        if rsi is not None and rsi <= RSI_LIMIT:
-            results.append(
-                (symbol, rsi)
-            )
-
-        if number % 50 == 0:
-            print(
-                f"Binance: "
-                f"{number}/{len(symbols)} analisados."
-            )
-
-        time.sleep(0.03)
-
-    return results
-
-
-# ==========================================================
 # OKX USDT-M PERPETUAL SWAPS
 # ==========================================================
 
@@ -345,47 +252,20 @@ def main():
     print("Somente candles fechados.")
     print("======================================")
 
-    binance_results = scan_binance()
-
     okx_results = scan_okx()
 
-    messages = []
-
-    if binance_results:
-        messages.append(
-            format_results(
-                "BINANCE FUTURES",
-                binance_results
-            )
-        )
-
     if okx_results:
-        messages.append(
-            format_results(
-                "OKX PERPETUAL",
-                okx_results
-            )
-        )
-
-    if messages:
-
         message = (
-            "ALERTA RSI 1H\n\n"
-            + "\n\n".join(messages)
-            + "\n\n"
-            + "RSI 14 (Wilder/RMA)\n"
-            + "Candle 1H fechado"
+            "ALERTA RSI 1H - OKX\n\n"
+            + format_results("OKX PERPETUAL", okx_results)
+            + "\n\nRSI 14 (Wilder/RMA)"
+            + "\nCandle 1H fechado"
         )
-
         send_telegram(message)
-
     else:
-        print(
-            "Nenhum contrato com RSI <= 30 "
-            "nesta execucao."
-        )
+        print("Nenhum contrato OKX com RSI <= 25 nesta execucao.")
 
-    if binance_failed:\n        print("Scanner finalizado com falha na Binance.")\n        raise SystemExit(1)\n\n    print("Scanner finalizado.")
+    print("Scanner finalizado.")
 
 
 if __name__ == "__main__":
