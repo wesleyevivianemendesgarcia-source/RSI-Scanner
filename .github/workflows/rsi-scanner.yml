@@ -7,7 +7,7 @@ on:
 
 jobs:
   scanner:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Baixar arquivos do repositorio
