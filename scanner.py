@@ -385,7 +385,7 @@ def main():
             "nesta execucao."
         )
 
-    print("Scanner finalizado.")
+    if binance_failed:\n        print("Scanner finalizado com falha na Binance.")\n        raise SystemExit(1)\n\n    print("Scanner finalizado.")
 
 
 if __name__ == "__main__":
