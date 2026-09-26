@@ -2,8 +2,7 @@ name: Scanner RSI Binance e OKX
 
 on:
   schedule:
-    - cron: '5 1,5,9,13,17,21 * * *'
-      timezone: 'America/Sao_Paulo'
+    - cron: '5 4,8,12,16,20,0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -14,7 +13,7 @@ jobs:
       - name: Baixar arquivos do repositorio
         uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -22,8 +21,8 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r requirements.txt
 
-      - name: Executar scanner RSI
+      - name: Scanner de executores RSI
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ID_DO_CHAT_DO_TELEGRAM: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scanner.py
