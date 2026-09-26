@@ -3,7 +3,7 @@ import time
 import requests
 
 RSI_PERIOD = 14
-RSI_LIMIT = 30.0
+RSI_LIMIT = 25.0
 TIMEOUT = 20
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -250,7 +250,7 @@ def get_okx_closes(symbol):
         url,
         params={
             "instId": symbol,
-            "bar": "4H",
+            "bar": "1H",
             "limit": 200
         }
     )
@@ -325,7 +325,7 @@ def format_results(exchange, results):
     )
 
     lines = [
-        f"{exchange} - RSI 4H <= {RSI_LIMIT:.0f}"
+        f"{exchange} - RSI 1H <= {RSI_LIMIT:.0f}"
     ]
 
     for symbol, rsi in results:
@@ -338,10 +338,10 @@ def format_results(exchange, results):
 
 def main():
     print("======================================")
-    print("Scanner RSI Futures iniciado.")
-    print("Timeframe: 4H")
+    print("Scanner RSI OKX iniciado.")
+    print("Timeframe: 1H")
     print("RSI: Wilder 14")
-    print("Limite: RSI <= 30")
+    print("Limite: RSI <= 25")
     print("Somente candles fechados.")
     print("======================================")
 
@@ -370,11 +370,11 @@ def main():
     if messages:
 
         message = (
-            "ALERTA RSI 4H\n\n"
+            "ALERTA RSI 1H\n\n"
             + "\n\n".join(messages)
             + "\n\n"
             + "RSI 14 (Wilder/RMA)\n"
-            + "Candle 4H fechado"
+            + "Candle 1H fechado"
         )
 
         send_telegram(message)
