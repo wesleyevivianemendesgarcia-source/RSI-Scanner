@@ -2,12 +2,14 @@ name: Scanner RSI OKX
 
 on:
   schedule:
-    # 1H: 00:05, 02:05, ..., 22:05 no horario de Sao Paulo (UTC-3)
-    - cron: '5 3,5,7,9,11,13,15,17,19,21,23,1 * * *'
-    # 4H: 01:05, 05:05, 09:05, 13:05, 17:05, 21:05 no horario de Sao Paulo (UTC-3)
-    - cron: '5 4,8,12,16,20,0 * * *'
-    # 1D: 21:45 no horario de Sao Paulo (UTC-3)
-    - cron: '45 0 * * *'
+    # 1H: 00:01, 02:01, ..., 22:01 no horario de Sao Paulo (UTC-3)
+    - cron: '1 3,5,7,9,11,13,15,17,19,21,23,1 * * *'
+    # 4H: 01:01, 05:01, 09:01, 13:01, 17:01, 21:01 no horario de Sao Paulo (UTC-3)
+    - cron: '1 4,8,12,16,20,0 * * *'
+    # 1D: 21:05 no horario de Sao Paulo (UTC-3)
+    - cron: '5 0 * * *'
+    # 1W: domingo 21:30 no horario de Sao Paulo (UTC-3) = segunda 00:30 UTC
+    - cron: '30 0 * * 1'
   workflow_dispatch:
     inputs:
       timeframe:
@@ -19,6 +21,7 @@ on:
           - '1H'
           - '4H'
           - '1D'
+          - '1W'
 
 jobs:
   scanner:
@@ -41,19 +44,24 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TF="${{ inputs.timeframe }}"
-          elif [ "${{ github.event.schedule }}" = "5 4,8,12,16,20,0 * * *" ]; then
+          elif [ "${{ github.event.schedule }}" = "1 4,8,12,16,20,0 * * *" ]; then
             TF="4H"
-          elif [ "${{ github.event.schedule }}" = "45 0 * * *" ]; then
+          elif [ "${{ github.event.schedule }}" = "5 0 * * *" ]; then
             TF="1D"
+          elif [ "${{ github.event.schedule }}" = "30 0 * * 1" ]; then
+            TF="1W"
           else
             TF="1H"
           fi
 
           if [ "$TF" = "4H" ]; then
             echo "SCAN_TIMEFRAME=4H" >> "$GITHUB_ENV"
-            echo "RSI_LIMIT=33" >> "$GITHUB_ENV"
+            echo "RSI_LIMIT=31" >> "$GITHUB_ENV"
           elif [ "$TF" = "1D" ]; then
             echo "SCAN_TIMEFRAME=1D" >> "$GITHUB_ENV"
+            echo "RSI_LIMIT=40" >> "$GITHUB_ENV"
+          elif [ "$TF" = "1W" ]; then
+            echo "SCAN_TIMEFRAME=1W" >> "$GITHUB_ENV"
             echo "RSI_LIMIT=40" >> "$GITHUB_ENV"
           else
             echo "SCAN_TIMEFRAME=1H" >> "$GITHUB_ENV"
