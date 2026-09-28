@@ -51,13 +51,13 @@ jobs:
 
           if [ "$TF" = "4H" ]; then
             echo "SCAN_TIMEFRAME=4H" >> "$GITHUB_ENV"
-            echo "RSI_LIMIT=30" >> "$GITHUB_ENV"
+            echo "RSI_LIMIT=33" >> "$GITHUB_ENV"
           elif [ "$TF" = "1D" ]; then
             echo "SCAN_TIMEFRAME=1D" >> "$GITHUB_ENV"
-            echo "RSI_LIMIT=35" >> "$GITHUB_ENV"
+            echo "RSI_LIMIT=40" >> "$GITHUB_ENV"
           else
             echo "SCAN_TIMEFRAME=1H" >> "$GITHUB_ENV"
-            echo "RSI_LIMIT=25" >> "$GITHUB_ENV"
+            echo "RSI_LIMIT=22" >> "$GITHUB_ENV"
           fi
 
       - name: Executar scanner RSI
